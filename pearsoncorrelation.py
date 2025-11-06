@@ -220,12 +220,12 @@ percentiles = df_section_scores.quantile([0.25, 0.5, 0.75]).rename(
     index={0.25: 'p25', 0.5: 'p50', 0.75: 'p75'}
     )
 descriptive_stats = pd.concat([
-    df_section_scores.mean().rename('mean'),
-    df_section_scores.std(ddof=1).rename('std'),
+    df_section_scores.mean(),
+    df_section_scores.std(ddof=1),
     percentiles.T
 ], axis=1)
+descriptive_stats.columns = ['mean', 'std', 'p25', 'p50', 'p75']
 descriptive_stats.to_csv(os.path.join(OUTPUT_DIR, "descriptives_sections.csv"))
-print("\nDescriptive statistics saved: descriptives_sections.csv")
 
 # === ADDED: UNIVARIATE VISUALIZATIONS ===
 # Histograms for numeric variables
@@ -245,10 +245,12 @@ categorical_vars = ['Gender', 'Faculty/School', 'Year of Study', 'Age']
 for var in categorical_vars:
     if var in df_raw.columns:
         plt.figure(figsize=(8, 5))
-        # Get value counts and sort by descending order
-        counts = df_raw[var].value_counts().reset_index()
-        counts.columns = [var, 'Count']
-        sns.barplot(x=var, y='Count', data=counts, order=counts[var])
+        # Get value counts and create a DataFrame
+        counts = df_raw[var].value_counts().reset_index(name='Count')
+        counts.rename(columns={'index': var}, inplace=True)
+
+        # Create the bar plot
+        sns.barplot(x=var, y='Count', data=counts)
         plt.title(f'Distribution of {var}')
         plt.xlabel(var)
         plt.ylabel('Count')
